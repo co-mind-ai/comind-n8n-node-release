@@ -23,9 +23,31 @@ cd ~/.n8n/nodes
 npm install /path/to/co-mind-ai-n8n-nodes-comind-ai-0.1.1.tgz
 ```
 
+Or without npm — just extract and run:
+
+```bash
+mkdir -p ~/.n8n/nodes/co-mind-ai
+tar xzf co-mind-ai-n8n-nodes-comind-ai-0.1.1.tgz --strip-components=1 -C ~/.n8n/nodes/co-mind-ai
+```
+
 ## n8n Setup
 
-### Manual installation
+### Existing n8n instance (Docker Compose)
+
+If you already have n8n running via Docker Compose, copy the node into the mounted `.n8n` volume:
+
+```bash
+# Extract the package into n8n's custom nodes directory
+mkdir -p ~/.n8n/nodes/co-mind-ai
+tar xzf co-mind-ai-n8n-nodes-comind-ai-0.1.1.tgz --strip-components=1 -C ~/.n8n/nodes/co-mind-ai
+
+# Restart n8n to pick up the new node
+docker compose restart n8n
+```
+
+> **Note:** Make sure your `docker-compose.yml` mounts `~/.n8n` as a volume (e.g. `- ~/.n8n:/home/node/.n8n`).
+
+### Fresh installation
 
 ```bash
 # Create custom nodes directory
