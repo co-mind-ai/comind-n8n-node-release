@@ -1,21 +1,81 @@
-# comind-n8n-node-release
+# Co-mind AI n8n Node
 
-This is a **release mirror** of [comind-n8n-node](https://github.com/co-mind-ai/comind-n8n-node).
-
-It contains only the built npm package artifacts — no source code, tests, or CI configuration. Releases are pushed here automatically via a manual workflow dispatch from the source repo.
+Custom n8n community node for integrating with Co-mind AI Server — enabling AI-powered workflow automation with inference, knowledge base (RAG), and more.
 
 ## Installation
 
-Install directly from this repo as an npm dependency:
-
 ```bash
+# In your n8n custom nodes directory
+cd ~/.n8n/nodes
 npm install co-mind-ai/comind-n8n-node-release
 ```
 
-Or pin a specific commit:
+Pin a specific version tag:
 
 ```bash
-npm install co-mind-ai/comind-n8n-node-release#COMMIT_SHA
+npm install co-mind-ai/comind-n8n-node-release#v0.1.0
 ```
 
-> **Note:** This is a private repository. You must have collaborator access and authenticate npm with GitHub. See [npm docs on GitHub URLs](https://docs.npmjs.com/cli/v10/configuring-npm/package-json#github-urls) for details.
+## n8n Setup
+
+### Manual installation
+
+```bash
+# Create custom nodes directory
+mkdir -p ~/.n8n/nodes
+
+# Install the package
+cd ~/.n8n/nodes
+npm install co-mind-ai/comind-n8n-node-release
+
+# Fix permissions for Docker's node user (UID 1000)
+sudo chown -R 1000:1000 ~/.n8n
+
+# Start n8n
+docker run -it --rm --name n8n \
+  --network host \
+  -e N8N_ENCRYPTION_KEY=my-secret-key-123 \
+  -v ~/.n8n:/home/node/.n8n \
+  docker.n8n.io/n8nio/n8n
+```
+
+n8n will be available at **http://localhost:5678**.
+
+## Configuring Credentials
+
+1. Open n8n at http://localhost:5678
+2. Go to **Credentials** → **Add Credential**
+3. Select **"Co-mind Server API"**
+4. Enter:
+
+| Field | Value |
+|---|---|
+| API Base URL | Your Co-mind AI platform URL |
+| Email | Your account email |
+| Password | Your account password |
+| Allowed HTTP Request Domains | `All` |
+
+5. Click **Save** — you should see: `Connection tested successfully`
+
+## Documentation
+
+See the [`docs/`](docs/) folder for detailed documentation on available resources and operations.
+
+## Available Resources
+
+| Resource | Description |
+|---|---|
+| Inference | Run AI inference tasks |
+| Knowledge Base | Manage knowledge bases for RAG |
+| Chat Session | Manage chat sessions |
+| Echo Transcription | Speech-to-text transcription |
+| Echo TTS | Text-to-speech generation |
+| Custom | Custom API requests |
+| Discovery | Service discovery |
+| Document Analyzer | Analyze documents |
+| Researcher | AI-powered research |
+| Sanitizer | Content sanitization |
+
+## Version History
+
+Check [tags](https://github.com/co-mind-ai/comind-n8n-node-release/tags) for available versions.
