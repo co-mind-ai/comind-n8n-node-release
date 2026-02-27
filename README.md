@@ -16,6 +16,13 @@ Pin a specific version tag:
 npm install co-mind-ai/comind-n8n-node-release#v0.1.0
 ```
 
+Or install from a `.tgz` package (download from [Releases](https://github.com/co-mind-ai/comind-n8n-node-release/releases)):
+
+```bash
+cd ~/.n8n/nodes
+npm install /path/to/co-mind-ai-n8n-nodes-comind-ai-0.1.1.tgz
+```
+
 ## n8n Setup
 
 ### Manual installation

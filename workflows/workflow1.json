@@ -1,0 +1,61 @@
+{
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "trigger-chain",
+      "name": "Start Scenario 1",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "prompt": "Create 3 short subheadings about 'The Future of AI'. Return only the headings as a bulleted list.",
+        "modelName": "llama3.2:latest"
+      },
+      "id": "step-1-outline",
+      "name": "1. Generate Outline",
+      "type": "CUSTOM.coMindAi",
+      "typeVersion": 1,
+      "position": [680, 300],
+      "credentials": {
+        "coMindAiApi": {
+          "id": "YOUR_CREDENTIAL_ID",
+          "name": "Co-mind AI Server account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "prompt": "={{ `Write a short, engaging blog post based on these headings:\n\n${$json.choices[0].message.content}` }}",
+        "modelName": "llama3.2:latest"
+      },
+      "id": "step-2-write",
+      "name": "2. Write Article",
+      "type": "CUSTOM.coMindAi",
+      "typeVersion": 1,
+      "position": [900, 300],
+      "credentials": {
+        "coMindAiApi": {
+          "id": "YOUR_CREDENTIAL_ID",
+          "name": "Co-mind AI Server account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Get text from AI\nconst aiText = items[0].json.choices[0].message.content;\n\n// 2. Convert text to Binary (File) format\nconst binaryData = Buffer.from(aiText).toString('base64');\n\n// 3. Return as file\nreturn [\n  {\n    json: {\n      success: true,\n      message: \"Article converted to file!\"\n    },\n    binary: {\n      data: {\n        data: binaryData,\n        mimeType: 'text/markdown',\n        fileExtension: 'md',\n        fileName: 'AI_Generated_Article.md'\n      }\n    }\n  }\n];"
+      },
+      "id": "create-file",
+      "name": "3. Create File",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 300]
+    }
+  ],
+  "connections": {
+    "Start Scenario 1": { "main": [[{ "node": "1. Generate Outline", "type": "main", "index": 0 }]] },
+    "1. Generate Outline": { "main": [[{ "node": "2. Write Article", "type": "main", "index": 0 }]] },
+    "2. Write Article": { "main": [[{ "node": "3. Create File", "type": "main", "index": 0 }]] }
+  }
+}

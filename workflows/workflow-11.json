@@ -1,0 +1,226 @@
+{
+  "name": "Workflow 9 - Co-mind Chat Completion (PDF Analyzer)",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "File Upload",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "File",
+              "fieldType": "file"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        -656,
+        112
+      ],
+      "id": "3a454302-8e0c-4f82-b41a-651190b82a46",
+      "name": "On form submission",
+      "webhookId": "29961ab9-ea70-454a-b468-8e7bc6347f6d"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "File",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        -448,
+        112
+      ],
+      "id": "7514d39a-6a92-4516-8535-723ea62d9c9e",
+      "name": "Extract Text from PDF"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.content }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=[Systemprompt]\nDu bist ein Agent, der die ankommenden Daten transformiert und als JSON ausgibt. Erfinde keine Werte dazu und halte dich nur an die ankommenden Daten. Die Anzahl der Inhalte darf sich **NIEMALS** verändern.\n\n[Guidelines]\n- Fasse Lieferungen an den gleichen Empfänger zusammen und ergänze die Inhalte.\n- Die Tatsächliche Anzahl der Inhalte darf sich **NIEMALS** verändern.\n- z.B. 3 Lieferungen eine die gleiche Firma, wird zur einer Lieferung mit allen Inhalten.\nJede Lieferung soll als eigenes Object ausgegeben werden.\nEine Lieferung hat einen Lieferort, einen Abholort, Metadaten sowie Inhalte. Die Inhalte sollen ebenfalls als ein eigenes Object ausgegeben werden"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "89694046-d2f3-4f87-9626-541ea9cb39c6",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "Qwen/Qwen2.5-32B-Instruct",
+        "options": {
+          "timeout": 300000
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        -96,
+        336
+      ],
+      "id": "c1a29257-5523-438c-892a-09128c7f21ba",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "cBHatgsnAsPAkNuZ",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "output.lieferungen",
+        "options": {
+          "destinationFieldName": "INPUT_DATA"
+        }
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        352,
+        112
+      ],
+      "id": "c2e5a22e-4039-4082-ac07-3df8d6b9c4e0",
+      "name": "Split Out2"
+    },
+    {
+      "parameters": {
+        "model": "Qwen/Qwen2.5-32B-Instruct",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "Du bist ein präziser Dokument-Analyser. Analysiere das gesamte Dokument und extrahiere alle relevanten Informationen. Erfinde keine Werte. Alles was nicht eindeutig im Dokument steht wird als \"N/A\" ausgegeben. Gib ausschließlich valides JSON zurück."
+            },
+            {
+              "content": "=Analysiere das folgende Dokument und extrahiere alle relevanten Informationen als strukturiertes JSON.\n\nDokument-Inhalt:\n{{ $json.data }}\n\nExtrahiere die Daten gemäß diesem Schema:\n{\n  \"lieferungen\": [\n    {\n      \"abholort\": { \"firmenname\": \"<string | N/A>\", \"adresse\": \"<string | N/A>\" },\n      \"lieferort\": { \"firmenname\": \"<string | N/A>\", \"adresse\": \"<string | N/A>\" },\n      \"abholdatum\": \"<string | N/A – Format: TT.MM.JJJJ>\",\n      \"lieferdatum\": \"<string | N/A – Format: TT.MM.JJJJ>\",\n      \"lieferscheinnummer\": \"<string | N/A>\",\n      \"auftragsnummer\": \"<string | N/A>\",\n      \"warenwert\": \"<string | N/A>\",\n      \"inhalte\": [\n        {\n          \"Positionsnummer\": \"<string | N/A>\",\n          \"artikelname\": \"<string | N/A>\",\n          \"artikelnummer\": \"<string | N/A>\",\n          \"menge\": \"<integer | N/A>\",\n          \"verpackung\": \"<string | N/A>\",\n          \"gewicht\": \"<number | N/A>\",\n          \"laenge\": \"<number | N/A>\",\n          \"breite\": \"<number | N/A>\",\n          \"hoehe\": \"<number | N/A>\"\n        }\n      ],\n      \"Gesamtgewicht\": \"<N/A wenn nicht vorhanden>\"\n    }\n  ]\n}\n\nGib NUR valides JSON zurück, keinen Fließtext."
+            }
+          ]
+        },
+        "options": {
+          "maxTokens": 4096,
+          "temperature": 0.1
+        }
+      },
+      "type": "@co-mind-ai/n8n-nodes-comind-ai.coMindAi",
+      "typeVersion": 1,
+      "position": [
+        -256,
+        112
+      ],
+      "id": "b8149b53-8c2e-4768-bead-b32928b1014a",
+      "name": "Chat completions",
+      "credentials": {
+        "coMindAiApi": {
+          "id": "T56TlI9OlsvDeqxU",
+          "name": "Co-mind AI Server account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"lieferungen\": [\n    {\n      \"abholort\": {\n        \"firmenname\": \"<string | N/A>\",\n        \"adresse\": \"<string | N/A>\"\n      },\n      \"lieferort\": {\n        \"firmenname\": \"<string | N/A>\",\n        \"adresse\": \"<string | N/A>\"\n      },\n      \"abholdatum\": \"<string | N/A – Format: TT.MM.JJJJ>\",\n      \"lieferdatum\": \"<string | N/A – Format: TT.MM.JJJJ>\",\n      \"lieferscheinnummer\": \"<string | N/A>\",\n      \"auftragsnummer\": \"<string | N/A>\",\n      \"warenwert\": \"<string | N/A>\",\n      \"inhalte\": [\n        {\n          \"Positionsnummer\": \"<string | N/A>\",\n          \"artikelname\": \"<string | N/A>\",\n          \"artikelnummer\": \"<string | N/A>\",\n          \"menge\": \"<integer | N/A>\",\n          \"verpackung\": \"<string | N/A>\",\n          \"gewicht\": \"<number | N/A>\",\n          \"laenge\": \"<number | N/A>\",\n          \"breite\": \"<number | N/A>\",\n          \"hoehe\": \"<number | N/A>\"\n        }\n      ],\n \"Gesamtgewicht\": \"<Identifiziere das Gesamtgewicht aus der PDF wenn vorhanden, ansonsten N/A>\"\n    }\n  ]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        208,
+        288
+      ],
+      "id": "f5bc01d3-38ef-48d8-bbab-2d699506965e",
+      "name": "Structured Output Parser"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Extract Text from PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Split Out2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Text from PDF": {
+      "main": [
+        [
+          {
+            "node": "Chat completions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat completions": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "e3fbfcd8-25f6-4d7c-8e96-369d211134e0",
+  "meta": {
+    "instanceId": "0b04cc2f676b8dd4869c217313d243a986913e8beefcbf1ac4c7bbf03ece0d02"
+  },
+  "id": "wE2abqWOn-PvA-1kCfjO9",
+  "tags": []
+}
